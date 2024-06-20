@@ -29,15 +29,15 @@ mkdir $OUTPUT_DIR
 echo ===== current OUTPUT_DIR is $OUTPUT_DIR =====
 echo ===== MODEL_PATH is $MODEL_PATH =====
 
-torchrun --nproc_per_node=4 --master_port=9919 pretrain.py \
+torchrun --nproc_per_node=8 --master_port=9919 pretrain.py \
     --model_name_or_path $MODEL_PATH \
     --data_path $DATA \
     --bf16 True \
     --output_dir $OUTPUT_DIR \
     --num_train_epochs 3 \
-    --per_device_train_batch_size 2 \
+    --per_device_train_batch_size 4 \
     --per_device_eval_batch_size 8 \
-    --gradient_accumulation_steps 8 \
+    --gradient_accumulation_steps 4 \
     --eval_strategy "no" \
     --save_strategy "steps" \
     --logging_steps 50 \

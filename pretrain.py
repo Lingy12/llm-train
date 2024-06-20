@@ -28,7 +28,7 @@ from torch.utils.data import Dataset
 from transformers import Trainer
 from modules.data import RawPretrainDataset
 from peft import LoraConfig, TaskType, get_peft_model, PeftModel, get_peft_model_state_dict
-
+from datasets import Dataset as HFDataset, load_from_disk
 from modules.logger_utils import get_logger
 from tqdm import tqdm
 
@@ -168,25 +168,27 @@ class PretrainDataset(Dataset):
         file_ls_name=f'{os.path.basename(data_path)}'
         # if os.path.exists('.cache')
         os.makedirs('.cache', exist_ok=True)
-        cache_path = f".cache/{file_ls_name}_cached.pt"
+        cache_path = f".cache/{file_ls_name}_cached"
         
         if os.path.exists(cache_path):
             logger.warning(f"Loading cached data from {cache_path}")
-            self.data_dict = torch.load(cache_path)
+            # self.data_dict = torch.load(cache_path)
+            self.data = load_from_disk(cache_path)
         else:
             logger.warning("Tokenizing inputs... This may take some time...")
             self.data_dict = preprocess(files_ls, tokenizer)
-            torch.save(self.data_dict, cache_path)
+            self.data = HFDataset.from_dict(self.data_dict)
+            self.data.save_to_disk(cache_path)
             logger.warning(f"Cached tokenized data at {cache_path}")
 
-        self.input_ids = self.data_dict["input_ids"]
-        self.labels = self.data_dict["labels"]
+        self.input_ids = self.data["input_ids"]
+        self.labels = self.data["labels"]
 
     def __len__(self):
         return len(self.input_ids)
 
     def __getitem__(self, i) -> Dict[str, torch.Tensor]:
-        return dict(input_ids=self.input_ids[i], labels=self.labels[i])
+        return dict(input_ids=torch.tensor(self.input_ids[i]), labels=torch.tensor(self.labels[i]))
 
 
 @dataclass
