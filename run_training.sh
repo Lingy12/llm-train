@@ -21,7 +21,7 @@ echo ===== PRETRAINING =====
 # Node that MODEL_PATH can be local folder path
 MODEL_PATH=./models/Meta-Llama-3-8B
 TITLE=llama-7b-pretrain
-DATA=data/dbg
+DATA=data/kr
 
 OUTPUT_DIR=outputs/test
 mkdir $OUTPUT_DIR

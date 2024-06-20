@@ -30,6 +30,7 @@ from modules.data import RawPretrainDataset
 from peft import LoraConfig, TaskType, get_peft_model, PeftModel, get_peft_model_state_dict
 
 from modules.logger_utils import get_logger
+from tqdm import tqdm
 
 logger = get_logger(__name__)
 
@@ -118,7 +119,7 @@ def _tokenize_fn(strings: Sequence[str], tokenizer: transformers.PreTrainedToken
             # max_length=tokenizer.model_max_length,
             truncation=False,
         )
-        for text in strings
+        for text in tqdm(strings, desc='Tokenizing')
     ]
     raw_input_ids = labels = [tokenized.input_ids[0] for tokenized in tokenized_list]
     # split input_ids with model_max_length
