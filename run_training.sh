@@ -52,7 +52,9 @@ torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --logging_steps 10 \
     --save_strategy steps \
     --save_total_limit 3 \
-    --save_steps 200 \
+    --save_steps 50 \
+    --eval_strategy steps \
+    --eval_steps 50 \
     --gradient_accumulation_steps ${gradient_accumulation_steps} \
     --preprocessing_num_workers 32 \
     --block_size ${block_size} \

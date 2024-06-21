@@ -53,6 +53,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 from sklearn.metrics import accuracy_score
+from tqdm import tqdm
 from peft import LoraConfig, TaskType, get_peft_model, PeftModel, prepare_model_for_kbit_training
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -498,9 +499,15 @@ def main():
                 assert lm_datasets.features.type == processed_dataset["train"].features.type
                 lm_datasets = concatenate_datasets([lm_datasets, processed_dataset["train"]])
         lm_datasets = lm_datasets.train_test_split(test_size = data_args.validation_split_percentage)
+        
+        # print(lm_datasets['train'])
 
     if training_args.do_train:
         train_dataset = lm_datasets['train']
+        # total_tokens = 0
+        # for i in tqdm(range(len(train_dataset))):
+        #     total_tokens += len(train_dataset[i]['input_ids'])
+        # logger.info('Number of tokens = {}'.format(total_tokens))
         if data_args.max_train_samples is not None:
             max_train_samples = min(len(train_dataset), data_args.max_train_samples)
             train_dataset = train_dataset.select(range(max_train_samples))
