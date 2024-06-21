@@ -53,6 +53,7 @@ from transformers.trainer_utils import get_last_checkpoint
 from transformers.utils import check_min_version, send_example_telemetry
 from transformers.utils.versions import require_version
 from sklearn.metrics import accuracy_score
+import json
 from tqdm import tqdm
 from peft import LoraConfig, TaskType, get_peft_model, PeftModel, prepare_model_for_kbit_training
 
@@ -229,8 +230,8 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
-    dataset_dir: Optional[str] = field(
-        default=None, metadata={"help": "The name of the dataset to use (via the datasets library)."}
+    dataset_config_file: Optional[str] = field(
+        default=None, metadata={"help": "The path of dataset configuration"}
     )
     dataset_config_name: Optional[str] = field(
         default=None, metadata={"help": "The configuration name of the dataset to use (via the datasets library)."}
@@ -452,15 +453,22 @@ def main():
         return result
     with training_args.main_process_first(desc="dataset map tokenization and grouping"):
         lm_datasets = []
-        path = Path(data_args.dataset_dir)
-        files = [file.name for file in path.glob("*")]
+        logger.info(f'Loading dataset according to config: {data_args.dataset_config_file}')
+        with open(data_args.dataset_config_file, 'r') as f:
+            data_config = json.load(f)
+        data_root_path = data_config['data_path']
+        # path = Path(data_args.dataset_dir)
+        training_datasets = data_config['datasets'].keys()
         
         if training_args.debug_mode is True:
-            files = [files[0]]
-        for idx, file in enumerate(files):
-            data_file = os.path.join(path, file)
-            is_hf_dir = os.path.isdir(data_file)
-            filename = ''.join(file.split(".")[:-1]) if not is_hf_dir else file
+            training_datasets = [datasets[0]]
+        for idx, dataset in enumerate(training_datasets):
+            data_file = os.path.join(data_root_path, dataset)
+            # is_hf_dir = os.path.isdir(data_file)
+            filename = dataset
+            portion = data_config['datasets'][dataset]
+            
+            logger.info(f'Loading {data_file} with ratio {portion}')
             cache_path = os.path.join(data_args.data_cache_dir, filename+f"_{block_size}")
             os.makedirs(cache_path, exist_ok=True)
             try:
@@ -470,8 +478,12 @@ def main():
                 cache_dir = os.path.join(data_args.data_cache_dir, filename+f"_text_{block_size}")
                 os.makedirs(cache_dir, exist_ok=True)
                 # raw_dataset = load_dataset("text", data_files=data_file, cache_dir=cache_dir, keep_in_memory=False)
-                raw_dataset = datasets.load_from_disk(data_file) if is_hf_dir else load_dataset("text", data_files=data_file, cache_dir=cache_dir, keep_in_memory=False)
-                logger.info(f"{file} has been loaded")
+                raw_dataset = datasets.load_from_disk(data_file)
+                columns_to_remove = list(set(raw_dataset['train'].features.keys()) - set(['text']))
+                logger.info(f'Removing columns: {columns_to_remove}')
+                raw_dataset = raw_dataset.remove_columns(columns_to_remove)
+        
+                logger.info(f"{dataset} has been loaded")
                 tokenized_dataset = raw_dataset.map(
                     tokenize_function,
                     batched=True,
@@ -493,11 +505,22 @@ def main():
                 )
                 processed_dataset = grouped_datasets
                 processed_dataset.save_to_disk(cache_path)
+            data_size = len(processed_dataset['train'])
+            # logger.info(data_size)
+            # logger.info()
+            logger.info(f'{dataset} has size: {data_size}')
+            sampled_dataset = processed_dataset['train'].select(list(range(int(portion * data_size))))
+            logger.info(f'Number of data loaded from {dataset}: {len(sampled_dataset)}')
             if idx == 0:
-                lm_datasets = processed_dataset['train']
+                lm_datasets = sampled_dataset
             else:
-                assert lm_datasets.features.type == processed_dataset["train"].features.type
-                lm_datasets = concatenate_datasets([lm_datasets, processed_dataset["train"]])
+                lm_datasets = concatenate_datasets([lm_datasets, sampled_dataset])
+            # if idx == 0:
+            #     lm_datasets = processed_dataset['train']
+            # else:
+            #     assert lm_datasets.features.type == processed_dataset["train"].features.type
+            #     lm_datasets = concatenate_datasets([lm_datasets, processed_dataset["train"]])
+        lm_datasets = lm_datasets.shuffle(training_args.seed) # shuffle the dataset after concatenating
         lm_datasets = lm_datasets.train_test_split(test_size = data_args.validation_split_percentage)
         
         # print(lm_datasets['train'])

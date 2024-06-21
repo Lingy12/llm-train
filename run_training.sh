@@ -7,10 +7,10 @@ export NCCL_IB_HCA="mlx5_0:1,mlx5_5:1"
 export NCCL_ALGO=RING
 export OMP_NUM_THREADS=26
 
-export WANDB_MODE=offline
+export WANDB_MODE=online
 export WANDB_API_KEY="450f5f137524092429c1579743d3941e8d31ac5d"
-export WANDB_PROJECT="lm-test"
-export WANDB_NAME='test'
+export WANDB_PROJECT="tamil-trial"
+export WANDB_NAME='tamil-pretrain'
 # export WANDB_NOTES=$run_name
 # export WANDB_TAGS="$exp_group"
 export WANDB_DIR="."
@@ -23,9 +23,9 @@ lora_trainable="q_proj,v_proj,k_proj,o_proj,gate_proj,down_proj,up_proj"
 modules_to_save="embed_tokens,lm_head"
 lora_dropout=0.05
 
-pretrained_model=./models/Meta-Llama-3-8B
+pretrained_model=./models/Sailor-4B-Chat
 tokenizer_name_or_path=${pretrained_model}
-dataset_dir=./data/kr
+dataset_config_file=./config/data_config/tamil-pretraining-conf.json
 data_cache=.cache
 per_device_train_batch_size=6
 gradient_accumulation_steps=8
@@ -35,7 +35,7 @@ output_dir=outputs
 torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --model_name_or_path ${pretrained_model} \
     --tokenizer_name_or_path ${tokenizer_name_or_path} \
-    --dataset_dir ${dataset_dir} \
+    --dataset_config_file ${dataset_config_file} \
     --data_cache_dir ${data_cache} \
     --validation_split_percentage 0.001 \
     --per_device_train_batch_size ${per_device_train_batch_size} \
@@ -43,7 +43,7 @@ torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --low_cpu_mem_usage \
     --seed $RANDOM \
     --bf16 \
-    --num_train_epochs 10 \
+    --num_train_epochs 1 \
     --lr_scheduler_type cosine \
     --learning_rate ${lr} \
     --warmup_ratio 0.05 \
@@ -52,9 +52,9 @@ torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --logging_steps 10 \
     --save_strategy steps \
     --save_total_limit 3 \
-    --save_steps 50 \
+    --save_steps 1000 \
     --eval_strategy steps \
-    --eval_steps 50 \
+    --eval_steps 1000 \
     --gradient_accumulation_steps ${gradient_accumulation_steps} \
     --preprocessing_num_workers 32 \
     --block_size ${block_size} \
@@ -68,7 +68,8 @@ torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --lora_dropout ${lora_dropout} \
     --modules_to_save ${modules_to_save} \
     --torch_dtype bfloat16 \
-    --fsdp "full_shard auto_wrap" \
     --run_name $WANDB_NAME \
     --load_in_kbits 16 \
     --ddp_find_unused_parameters False
+
+        # --fsdp "full_shard auto_wrap" \

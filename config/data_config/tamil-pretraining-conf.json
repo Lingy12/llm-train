@@ -1,0 +1,12 @@
+{
+    "data_path": "./data/tamil-pretrain-with-replay",
+        
+    "datasets": {
+        "tamil-madlad-400": 1,
+        "malay-madlad-400-clean": 1,
+        "slimpajama-6b": 0.3,
+        "refined_BAAI": 1,
+        "openhermes": 1
+    }
+    
+}

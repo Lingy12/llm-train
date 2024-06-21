@@ -4,3 +4,5 @@ data/
 wandb/
 .cache/
 log/
+preready/
+data_prep/
