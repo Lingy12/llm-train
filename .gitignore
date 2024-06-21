@@ -3,3 +3,4 @@ outputs/
 data/
 wandb/
 .cache/
+log/
