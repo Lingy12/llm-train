@@ -1,7 +1,7 @@
 #!/bin/bash -l
 #SBATCH --job-name=whisper-tuning   # Job name
-#SBATCH --output=log/whisper.o%j # Name of stdout output file
-#SBATCH --error=log/whisper.e%j  # Name of stderr error file
+#SBATCH --output=log/llm-pretrain.o%j # Name of stdout output file
+#SBATCH --error=log/llm-pretrain.e%j  # Name of stderr error file
 #SBATCH --partition=defq  # or ju-standard-g, partition name
 #SBATCH --nodes=4               # Total number of nodes 
 #SBATCH --ntasks-per-node=1 

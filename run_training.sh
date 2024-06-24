@@ -10,7 +10,7 @@ export OMP_NUM_THREADS=26
 export WANDB_MODE=online
 export WANDB_API_KEY="450f5f137524092429c1579743d3941e8d31ac5d"
 export WANDB_PROJECT="tamil-trial"
-export WANDB_NAME='tamil-pretrain'
+export WANDB_NAME='tamil-pretrain-v0.1'
 # export WANDB_NOTES=$run_name
 # export WANDB_TAGS="$exp_group"
 export WANDB_DIR="."
@@ -25,12 +25,12 @@ lora_dropout=0.05
 
 pretrained_model=./models/Sailor-4B-Chat
 tokenizer_name_or_path=${pretrained_model}
-dataset_config_file=./config/data_config/tamil-pretraining-conf.json
+dataset_config_file=./config/data_config/tamil-pretraining-conf-v0.1.json
 data_cache=.cache
-per_device_train_batch_size=6
-gradient_accumulation_steps=8
-block_size=1024
-output_dir=outputs
+per_device_train_batch_size=3
+gradient_accumulation_steps=40
+block_size=2048
+output_dir=outputs/tamil-pretraining-conf-v0.1
 
 torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --model_name_or_path ${pretrained_model} \
@@ -51,10 +51,10 @@ torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --logging_strategy steps \
     --logging_steps 10 \
     --save_strategy steps \
-    --save_total_limit 3 \
-    --save_steps 1000 \
+    --save_steps 250 \
     --eval_strategy steps \
-    --eval_steps 1000 \
+    --eval_steps 250 \
+    --save_total_limit 10 \
     --gradient_accumulation_steps ${gradient_accumulation_steps} \
     --preprocessing_num_workers 32 \
     --block_size ${block_size} \
