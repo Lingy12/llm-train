@@ -6,3 +6,4 @@ wandb/
 log/
 preready/
 data_prep/
+.venv/
