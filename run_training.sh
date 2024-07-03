@@ -32,8 +32,6 @@ gradient_accumulation_steps=40
 block_size=2048
 output_dir=outputs/tamil-pretraining-conf-v0.1
 
-source .venv/bin/activate
-
 torchrun --nnodes 1 --nproc_per_node 8 pretrain.py \
     --model_name_or_path ${pretrained_model} \
     --tokenizer_name_or_path ${tokenizer_name_or_path} \
