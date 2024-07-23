@@ -625,6 +625,9 @@ def main():
         model.print_trainable_parameters()
 
     # Initialize our Trainer
+    if training_args.lr_scheduler_type == 'cosine_with_min_lr':
+        training_args.lr_scheduler_kwargs = {"min_lr_rate": 0.5}
+    
     trainer = Trainer(
         model=model,
         args=training_args,
