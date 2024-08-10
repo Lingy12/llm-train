@@ -10,7 +10,7 @@ export OMP_NUM_THREADS=26
 export WANDB_MODE=online
 export WANDB_API_KEY="450f5f137524092429c1579743d3941e8d31ac5d"
 export WANDB_PROJECT="tamil-trial"
-export WANDB_NAME='tamil-pretrain-v0.8-from-freeze-with-v0.6'
+export WANDB_NAME='tamil-pretrain-v0.5-gemma'
 
 # v0.3: long context, new data, new lr schedule
 # export WANDB_NOTES=$run_name
@@ -23,17 +23,17 @@ lora_rank=64
 lora_alpha=128
 lora_trainable="q_proj,v_proj,k_proj,o_proj,gate_proj,down_proj,up_proj"
 modules_to_save="embed_tokens,lm_head"
-lora_dropout=0.05 # TODO: change later -> 0.05
+lora_dropout=0.05
 
 #pretrained_model=./models/Sailor-4B-Chat
-pretrained_model=./models/tm-pretraining-v0.7-CPT-Stage2
+pretrained_model=./models/gemma-2-2b-it
 tokenizer_name_or_path=${pretrained_model}
-dataset_config_file=./config/data_config/tamil-pretraining-conf-v0.6.json
+dataset_config_file=./config/data_config/tamil-pretraining-conf-v0.5.json
 data_cache=.cache
-per_device_train_batch_size=1
-gradient_accumulation_steps=256
+per_device_train_batch_size=2
+gradient_accumulation_steps=128
 block_size=4096
-output_dir=outputs/tamil-pretraining-conf-v0.8-from-freeze-with-v0.6
+output_dir=outputs/tamil-pretraining-conf-v0.5-gemma
 
 torchrun --nnodes 1 --nproc_per_node 8 main/pretrain.py \
     --model_name_or_path ${pretrained_model} \
@@ -59,7 +59,7 @@ torchrun --nnodes 1 --nproc_per_node 8 main/pretrain.py \
     --eval_steps 100 \
     --save_total_limit 10 \
     --gradient_accumulation_steps ${gradient_accumulation_steps} \
-    --preprocessing_num_workers 128 \
+    --preprocessing_num_workers 32 \
     --block_size ${block_size} \
     --output_dir ${output_dir} \
     --overwrite_output_dir \

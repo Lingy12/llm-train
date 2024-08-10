@@ -1,0 +1,13 @@
+{
+    "data_path": "./data/tamil-pretrain-with-replay",
+        
+    "datasets": {
+        "tamil-madlad-400": 1,
+        "news.ta.hf": 1,
+        "en-ta-perplex-V1": 1,
+        "wiki-ta": 1,
+        "WMT-en-ta-trans-V1.1": 1,
+        "Aya_FlanCoT_MS_TA": 1
+    }
+    
+}
